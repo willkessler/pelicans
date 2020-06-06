@@ -1,5 +1,5 @@
 class Bird {
-  PVector pos, vel, accel, accelBumpVec, dragVec;
+  PVector pos, vel, accel, accelBumpVec, accelPush, dragVec;
   float rot, radRot, rotVel;
   int wingFlapCount;
   int numWingFlaps = 3;
@@ -7,7 +7,7 @@ class Bird {
   float flapScale;
   float wingFlapTimer, wingFlapTimerInc = 2;
   float airspeedFriction = 0.9975; // air speed slows down by this amount
-  float accelFactor = 2;
+  float accelFactor = 1.1;
   boolean flappingWings = false;
   
   Bird() {
@@ -15,6 +15,7 @@ class Bird {
     //vel = new PVector(random(0,1), random(0,1));
     vel = new PVector(1,0);
     accel = new PVector(0,0);
+    accelPush = new PVector(0,0);
     dragVec = new PVector(0,0);
     accelBumpVec = new PVector(0,0);
     rot = 0.0;
@@ -46,8 +47,7 @@ class Bird {
   }
   
   void update() {
-   
-     radRot = radians(rot);
+    radRot = radians(rot);
    
     if (flappingWings) {
       //println("not updating rot");
@@ -62,12 +62,18 @@ class Bird {
           stopFlappingWings();
         }
       } else if (wingFlapTimer == 90) {
-        accel.set(cos(radRot),sin(radRot));
+        accelPush.set(vel.x, vel.y);
+        accelPush.normalize();
+        accelPush.mult(0.1);
+        accel.set(accelPush);
       } else if ((wingFlapTimer > 90)) { // wings at top of flap, start to apply downward force
         //accel.set(cos(radRot),sin(radRot));
         accelBumpVec.set(accel.x, accel.y);
-        float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer + 45: 0);
-        accelBumpVec.mult(sin(radians(accelBump)) * accelFactor);
+        float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
+        float sinAccel = sin(radians(accelBump)) * accelFactor;
+        accelBumpVec.set(accelPush);
+        accelBumpVec.mult(sinAccel);
+        println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
         accel.add(accelBumpVec);
       }
     } else {    
@@ -89,9 +95,10 @@ class Bird {
     accel.mult(0);
     
     if (!flappingWings) { // no turning while flapping wings
-      rotVel += max(-0.02, min(0.02,random(-0.1,0.1)));
-      rotVel = random(-5,5);
-      rot = max(-20, min(20,rotVel + rot));
+      rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
+      //rot = degrees(vel.heading());
+      //rot = max(-1, min(10,rotVel + rot));
+      vel.rotate(radians(rotVel));
     }
     //println("updating rot", rot, "with rotvel", rotVel);
 

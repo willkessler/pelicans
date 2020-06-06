@@ -5,7 +5,7 @@ class Pelican {
   int numWingFlaps = 3;
   float velAddPerWingFlap = 2;
   float flapScale;
-  float wingFlapTimer, wingFlapTimerInc = 2;
+  float wingFlapTimer, wingFlapTimerInc = 5;
   float airspeedFriction = 0.9975; // air speed slows down by this amount
   float accelFactor = 1.1;
   boolean flappingWings = false;
@@ -73,7 +73,7 @@ class Pelican {
         float sinAccel = sin(radians(accelBump)) * accelFactor;
         accelBumpVec.set(accelPush);
         accelBumpVec.mult(sinAccel);
-        println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
+        //println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
         accel.add(accelBumpVec);
       }
     } else {    
@@ -84,7 +84,7 @@ class Pelican {
     }
     
     dragVec.set(vel.x, vel.y);
-    dragVec.mult(-0.01); // drag in the opposite direction of the velocity
+    dragVec.mult(random(-0.01, -0.001)); // drag in the opposite direction of the velocity
     accel.add(dragVec);
     //println("accel", accel);
     vel.add(accel);

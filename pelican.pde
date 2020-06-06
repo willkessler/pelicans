@@ -1,4 +1,4 @@
-class Bird {
+class Pelican {
   PVector pos, vel, accel, accelBumpVec, accelPush, dragVec;
   float rot, radRot, rotVel;
   int wingFlapCount;
@@ -10,7 +10,7 @@ class Bird {
   float accelFactor = 1.1;
   boolean flappingWings = false;
   
-  Bird() {
+  Pelican() {
     pos = new PVector(width / 2, height / 2);
     //vel = new PVector(random(0,1), random(0,1));
     vel = new PVector(1,0);

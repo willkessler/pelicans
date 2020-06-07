@@ -5,7 +5,8 @@ class Pelican {
   int numWingFlaps = 3;
   float velAddPerWingFlap = 2;
   float flapScale;
-  float wingFlapTimer, wingFlapTimerInc = 5;
+  float wingFlapTimer;
+  float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
   float airspeedFriction = 0.9975; // air speed slows down by this amount
   float accelFactor = 1.1;
   boolean flappingWings = false;
@@ -34,6 +35,13 @@ class Pelican {
     } else if (pos.y < 0) {
       pos.y = height;
     }
+    
+     if (pos.z > width) {
+      pos.z = 0;
+    } else if (pos.z < 0) {
+      pos.z = width;
+    }
+   
   }
   
   void startFlappingWings() {
@@ -52,7 +60,7 @@ class Pelican {
     if (flappingWings) {
       //println("not updating rot");
       if (wingFlapTimer < 360) {
-        wingFlapTimer += wingFlapTimerInc;
+        wingFlapTimer += (wingFlapTimer < 90 ? wingFlapUpTimerInc : wingFlapDownTimerInc);
       }
       
       if (wingFlapTimer >= 180) { // reset for another flap or stop flapping
@@ -100,22 +108,24 @@ class Pelican {
   
   void render() {
     float theta = vel.heading() + PI/2;
-    float r = 5;
+    float r = 15;
+    
     pushMatrix();
-    translate(pos.x, pos.y);
-    rotate(theta);
+    translate(pos.x, pos.y, -100);
+    rotateY(theta);
     if (wingFlapCount > 0) {
       flapScale = 1.0 + sin(radians(wingFlapTimer));
       scale(flapScale);
     }
-    noStroke();
-    fill(255);
-    beginShape();
-    vertex(0, -r*2);
-    vertex(-r*1.5, r*1.25);
-    vertex(0, 0);
-    vertex(r*1.5, r*1.25);
-    endShape(CLOSE);
+    //noStroke();
+    //fill(255);
+    //beginShape();
+    //vertex(0, -r*2,-r * 2);
+    //vertex(-r*1.5, r*1.25,-r * 2);
+    //vertex(0, 0, -r);
+    //vertex(r*1.5, r*1.25,r * 2);
+    //endShape(CLOSE);
+    box(80);
     popMatrix();
   }
   

@@ -67,7 +67,6 @@ class Pelican {
         accelPush.mult(0.1);
         accel.set(accelPush);
       } else if ((wingFlapTimer > 90)) { // wings at top of flap, start to apply downward force
-        //accel.set(cos(radRot),sin(radRot));
         accelBumpVec.set(accel.x, accel.y);
         float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
         float sinAccel = sin(radians(accelBump)) * accelFactor;
@@ -86,21 +85,16 @@ class Pelican {
     dragVec.set(vel.x, vel.y);
     dragVec.mult(random(-0.01, -0.001)); // drag in the opposite direction of the velocity
     accel.add(dragVec);
-    //println("accel", accel);
     vel.add(accel);
     //vel.limit(2.5);
     pos.add(vel);
-    //println("vel", vel);
     wrap();
     accel.mult(0);
     
     if (!flappingWings) { // no turning while flapping wings
       rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
-      //rot = degrees(vel.heading());
-      //rot = max(-1, min(10,rotVel + rot));
       vel.rotate(radians(rotVel));
     }
-    //println("updating rot", rot, "with rotvel", rotVel);
 
   }
   

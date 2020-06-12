@@ -10,6 +10,7 @@ class Pelican {
   float airspeedFriction = 0.9975; // air speed slows down by this amount
   float accelFactor = 1.1;
   boolean flappingWings = false;
+  Cylinder body;
   
   Pelican() {
     pos = new PVector(width / 2, height / 2);
@@ -21,6 +22,7 @@ class Pelican {
     accelBumpVec = new PVector(0,0);
     rot = 0.0;
     rotVel = 0.0;
+    body = new Cylinder(30,10,80);
   }
   
   void wrap() {
@@ -118,14 +120,15 @@ class Pelican {
       scale(flapScale);
     }
     //noStroke();
-    //fill(255);
+    fill(100,40,90);
     //beginShape();
     //vertex(0, -r*2,-r * 2);
     //vertex(-r*1.5, r*1.25,-r * 2);
     //vertex(0, 0, -r);
     //vertex(r*1.5, r*1.25,r * 2);
     //endShape(CLOSE);
-    box(80);
+    //box(80);
+    body.render();
     popMatrix();
   }
   

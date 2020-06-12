@@ -24,7 +24,7 @@ void setup() {
   for (int i = 0; i < numPelicans; ++i) {
     pelicans[i] = new Pelican();
   }
-  theGround = new Terrain(25,25,2000,2000);
+  //theGround = new Terrain(25,25,2000,2000);
 }
 
 void updatePelicans() {
@@ -44,5 +44,6 @@ void draw() {
   background(0,0,0);
   updatePelicans();
   renderPelicans();
-  theGround.render();
+  //theGround.render();
+
 }

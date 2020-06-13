@@ -44,3 +44,41 @@ class Cylinder {
   }
 
 }
+
+
+class Cone {
+  int sides;
+  float r;
+  float h;
+  
+  Cone(int coneSides, float coneRadius, float coneHeight) {
+    sides = coneSides;
+    r = coneRadius;
+    h = coneHeight;
+  }
+
+  void render()
+  {
+      float angle = 360 / sides;
+      float halfHeight = h / 2;
+      
+      // draw base
+      beginShape();
+      for (int i = 0; i < sides; i++) {
+          float x = cos( radians( i * angle ) ) * r;
+          float y = sin( radians( i * angle ) ) * r;
+          vertex( x, y, halfHeight );    
+      }
+      endShape(CLOSE);
+      
+      // draw body
+      beginShape(TRIANGLE_STRIP);
+      for (int i = 0; i < sides + 1; i++) {
+        float x = cos( radians( i * angle ) ) * r;
+        float y = sin( radians( i * angle ) ) * r;
+        vertex( 0, 0, -halfHeight);
+        vertex( x, y, halfHeight);    
+      }
+      endShape(CLOSE);
+  }
+}

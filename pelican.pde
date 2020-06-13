@@ -9,11 +9,14 @@ class Pelican {
   float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
   float airspeedFriction = 0.9975; // air speed slows down by this amount
   float accelFactor = 1.1;
+  float outerBoxSize, halfOuterBoxSize;
   boolean flappingWings = false;
-  Cylinder body;
+  Cone body;
   
-  Pelican() {
-    pos = new PVector(width / 2, height / 2);
+  Pelican(float oBoxSize) {
+    outerBoxSize = oBoxSize;
+    halfOuterBoxSize = outerBoxSize / 2;
+    pos = new PVector(0,0);
     //vel = new PVector(random(0,1), random(0,1));
     vel = new PVector(1,0);
     accel = new PVector(0,0);
@@ -22,28 +25,18 @@ class Pelican {
     accelBumpVec = new PVector(0,0);
     rot = 0.0;
     rotVel = 0.0;
-    body = new Cylinder(30,10,80);
+    body = new Cone(30,10,80);
   }
   
-  void wrap() {
-    if (pos.x > width) {
-      pos.x = 0;
-    } else if (pos.x < 0) {
-      pos.x = width;
+  float wrap(float coord, float minimum, float maximum) {
+    float newVal = coord;
+    if (coord >= maximum) {
+      newVal = minimum;
     }
-    
-    if (pos.y > height) {
-      pos.y = 0;
-    } else if (pos.y < 0) {
-      pos.y = height;
-    }
-    
-     if (pos.z > width) {
-      pos.z = 0;
-    } else if (pos.z < 0) {
-      pos.z = width;
-    }
-   
+    if (coord <= minimum) {
+      newVal = maximum;
+    } 
+    return newVal;
   }
   
   void startFlappingWings() {
@@ -98,7 +91,7 @@ class Pelican {
     vel.add(accel);
     //vel.limit(2.5);
     pos.add(vel);
-    wrap();
+    pos.set(wrap(pos.x, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.y, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.z, -halfOuterBoxSize, halfOuterBoxSize));
     accel.mult(0);
     
     if (!flappingWings) { // no turning while flapping wings
@@ -110,24 +103,34 @@ class Pelican {
   
   void render() {
     float theta = vel.heading() + PI/2;
-    float r = 15;
+    float r = 35;
     
+
     pushMatrix();
     translate(pos.x, pos.y, -100);
-    rotateY(theta);
+    
+    // render vector for velocity
+    stroke(255,0,0);
+    strokeWeight(10); 
+    line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
+
+    //rotateY(theta);
+    //rotateX(radians(90));
+   
+    strokeWeight(1);
     if (wingFlapCount > 0) {
       flapScale = 1.0 + sin(radians(wingFlapTimer));
       scale(flapScale);
     }
     //noStroke();
-    fill(100,40,90);
+    fill(100,140,190);
     //beginShape();
     //vertex(0, -r*2,-r * 2);
     //vertex(-r*1.5, r*1.25,-r * 2);
     //vertex(0, 0, -r);
     //vertex(r*1.5, r*1.25,r * 2);
     //endShape(CLOSE);
-    //box(80);
+    rotateX(PI/2);
     body.render();
     popMatrix();
   }

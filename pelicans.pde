@@ -16,13 +16,16 @@
 int numPelicans = 1;
 Pelican[] pelicans;
 Terrain theGround;
-  
+float windowSize = 800;  
+float outerBoxSize = windowSize / 2 * .8;
+
+
 void setup() {
   size(800,800, P3D);
   pelicans = new Pelican[numPelicans];
 
   for (int i = 0; i < numPelicans; ++i) {
-    pelicans[i] = new Pelican();
+    pelicans[i] = new Pelican(outerBoxSize);
   }
   //theGround = new Terrain(25,25,2000,2000);
 }
@@ -41,9 +44,24 @@ void renderPelicans() {
 
 
 void draw() {
-  background(0,0,0);
+ background(0,0,0);
+  noFill();
+  stroke(255);
+  float fov = PI/4.5;
+  float cameraZ = (height/2.0) / tan(fov/2.0);
+  perspective(fov, float(width)/float(height), 
+              cameraZ/20, cameraZ*10.0);
+              
+  translate(windowSize/2, windowSize/2, 0);
+  float yRot = map(mouseX, 0, windowSize, -PI/2, PI/2);
+  float xRot = map(-mouseY, 0, windowSize, -PI/4, PI/4);
+  rotateY(yRot);
+  rotateX(xRot);
+  box(outerBoxSize);
+
   updatePelicans();
   renderPelicans();
+  
   //theGround.render();
 
 }

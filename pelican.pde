@@ -102,10 +102,9 @@ class Pelican {
   }
   
   void render() {
-    float theta = vel.heading() + PI/2;
+    float theta = vel.heading();
     float r = 35;
     
-
     pushMatrix();
     translate(pos.x, pos.y, -100);
     
@@ -113,25 +112,17 @@ class Pelican {
     stroke(255,0,0);
     strokeWeight(10); 
     line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
-
-    //rotateY(theta);
-    //rotateX(radians(90));
    
     strokeWeight(1);
     if (wingFlapCount > 0) {
       flapScale = 1.0 + sin(radians(wingFlapTimer));
       scale(flapScale);
     }
-    //noStroke();
     fill(100,140,190);
-    //beginShape();
-    //vertex(0, -r*2,-r * 2);
-    //vertex(-r*1.5, r*1.25,-r * 2);
-    //vertex(0, 0, -r);
-    //vertex(r*1.5, r*1.25,r * 2);
-    //endShape(CLOSE);
-    rotateX(PI/2);
+
+    rotateZ(theta);
     body.render();
+    
     popMatrix();
   }
   

@@ -120,7 +120,8 @@ class Pelican {
     }
     fill(100,140,190);
 
-    rotateZ(theta);
+    //rotateZ(theta);
+    rotateToVector(vel);
     body.render();
     
     popMatrix();

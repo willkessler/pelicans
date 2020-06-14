@@ -25,17 +25,19 @@ class Terrain {
       }
     }
     terrainShape = createShape();
-    terrainShape.beginShape();
+    terrainShape.beginShape(TRIANGLE_STRIP);
     terrainShape.stroke(0);
     terrainShape.fill(0,255,0);
-    for (int i = 0; i < numRows - 1; ++i) {
-      for (int j = 0; j < numCols - 1; ++j) {
-        j1 = j * numCols;
-        j2 = (j + 1) * numCols;
-        terrainShape.vertex(coords[j1 + i].x, coords[j1 + i].y, coords[j1 + i].z);
-        terrainShape.vertex(coords[j1 + i + 1].x, coords[j1 + i +1 ].y, coords[j1 + i + 1].z);
-        terrainShape.vertex(coords[j2 + i + 1].x, coords[j2 + i + 1].y, coords[j2 + i + 1].z);
-        terrainShape.vertex(coords[j2 + i].x, coords[j2 + i].y, coords[j2 + i].z);
+    for (int i = 0; i < numRows ; ++i) {
+      for (int j = 0; j < numCols; ++j) {
+        //j1 = j * numCols;
+        //j2 = (j + 1) * numCols;
+        //terrainShape.vertex(coords[j1 + i].x, coords[j1 + i].y, coords[j1 + i].z);
+        //terrainShape.vertex(coords[j1 + i + 1].x, coords[j1 + i +1 ].y, coords[j1 + i + 1].z);
+        //terrainShape.vertex(coords[j2 + i + 1].x, coords[j2 + i + 1].y, coords[j2 + i + 1].z);
+        //terrainShape.vertex(coords[j2 + i].x, coords[j2 + i].y, coords[j2 + i].z);
+        j1 = i * j + j;
+        terrainShape.vertex(coords[j1].x, coords[j1].y, coords[j1].z);
       }
     }
     terrainShape.endShape(CLOSE);

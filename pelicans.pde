@@ -16,9 +16,31 @@
 int numPelicans = 1;
 Pelican[] pelicans;
 Terrain theGround;
+Axes theAxes;
 float windowSize = 800;  
 float outerBoxSize = windowSize / 2 * .8;
+PVector pointToVec;
 
+// =-=-=-=-=-=-=-=-=-=-=-=- UTILS =-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+// see: https://www.euclideanspace.com/maths/algebra/vectors/angleBetween/
+float angleBetweenVectors(PVector v1, PVector v2) {
+  float dp = v1.dot(v2);
+  float denom = v1.mag() * v2.mag();
+  float angle = acos(dp/denom);
+  return degrees(angle);
+}
+
+void rotateToVector(PVector v1) {
+  PVector xAxis = new PVector(1,0,0);
+  float angleBetween = angleBetweenVectors(v1,xAxis);
+  PVector rotVec = xAxis.cross(v1);
+  // even though not doc'd, Processing supports rotate about arbitrary vector here:
+  // https://github.com/processing/processing/blob/349f413a3fb63a75e0b096097a5b0ba7f5565198/core/src/processing/core/PMatrix3D.java#L244
+  rotate(radians(angleBetween), rotVec.x, rotVec.y, rotVec.z); 
+}
+
+// =-=-=-=-=-=-=-=-=-=-=-=- MAIN CODE =-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 void setup() {
   size(800,800, P3D);
@@ -28,6 +50,10 @@ void setup() {
     pelicans[i] = new Pelican(outerBoxSize);
   }
   //theGround = new Terrain(25,25,2000,2000);
+  theAxes = new Axes(100, color(255,0,0), color(0,255,0), color(0,0,255));
+  pointToVec = new PVector(random(-1,1), random(-1,1), random(-1,1));
+   pointToVec.mult(70);
+
 }
 
 void updatePelicans() {
@@ -46,7 +72,6 @@ void renderPelicans() {
 void draw() {
  background(0,0,0);
   noFill();
-  stroke(255);
   float fov = PI/4.5;
   float cameraZ = (height/2.0) / tan(fov/2.0);
   perspective(fov, float(width)/float(height), 
@@ -57,11 +82,21 @@ void draw() {
   float xRot = map(-mouseY, 0, windowSize, -PI/4, PI/4);
   rotateY(yRot);
   rotateX(xRot);
+  
+  stroke(255);
   box(outerBoxSize);
 
   updatePelicans();
   renderPelicans();
   
+  
+  stroke(255,255,0);
+  strokeWeight(5);
+  line(0,0,0, pointToVec.x, pointToVec.y, pointToVec.z);
+  strokeWeight(1);
+
+  theAxes.render();
+
   //theGround.render();
 
 }

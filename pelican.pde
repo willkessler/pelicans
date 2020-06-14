@@ -10,7 +10,7 @@
 
 class Pelican {
   
-  PVector pos, vel, gravityVel, accel, accelBumpVec, accelPush, gravityAcc;
+  PVector pos, vel, gravityVel, accel, accelBumpVec, accelPush, gravityAcc, rRot;
   float rot, radRot, rotVel;
   int wingFlapCount;
   int numWingFlaps = 3;
@@ -18,7 +18,7 @@ class Pelican {
   float flapScale;
   float wingFlapTimer;
   float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
-  float airspeedFriction = 1.0 - 0.001; // air speed slows down by this amount
+  float airspeedFriction = 1.0 - 0.0001; // air speed slows down by this amount
   float accelFactor = 1.1;
   boolean flappingWings = false;
   float G = 0.001; // gravity constant
@@ -32,8 +32,9 @@ class Pelican {
     accel = new PVector(0,0,0);
     accelPush = new PVector(0,0,0);
     gravityVel = new PVector(0,0,0);
-    gravityAcc = new PVector(0,0,G);
+    gravityAcc = new PVector(0,G,0);
     accelBumpVec = new PVector(0,0,0);
+    rRot = new PVector(0,0);
     rot = 0.0;
     rotVel = 0.0;
     body = new Cone(20,4,40);
@@ -76,11 +77,11 @@ class Pelican {
           stopFlappingWings();
         }
       } else if (wingFlapTimer == 90) {
-        accelPush.set(vel.x, vel.y, 0);
+        accelPush.set(vel.x, 0, vel.z);
         accelPush.normalize();
         accelPush.mult(0.1);
         accel.set(accelPush);
-        gravityVel.z = wingGBump * G;
+        gravityVel.y = wingGBump * G;
       } else if ((wingFlapTimer > 90)) { // wings at top of flap, start to apply downward force
         accelBumpVec.set(accel.x, accel.y, accel.z);
         float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
@@ -91,7 +92,8 @@ class Pelican {
         accel.add(accelBumpVec);
       }
     } else {
-       if (gravityVel.z > 0.2) {
+      //println("gravityVel y", gravityVel.y);
+       if (gravityVel.y > 0.2) {
         startFlappingWings();
       }
 
@@ -103,14 +105,16 @@ class Pelican {
     vel.limit(2);
     pos.add(vel);
     pos.add(gravityVel);
-    //println(pos, vel);
     pos.set(wrap(pos.x, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.y, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.z, -halfOuterBoxSize, halfOuterBoxSize));
     accel.mult(0);
     
     if (!flappingWings) { // no turning while flapping wings
       //rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
       rotVel += random(-0.005,0.005);
-      vel.rotate(radians(rotVel));
+      rRot.set(vel.x, vel.z);
+      rRot.rotate(radians(rotVel));
+      vel.x = rRot.x;
+      vel.y = rRot.z;
     }
 
   }

@@ -19,6 +19,7 @@ Terrain theGround;
 Axes theAxes;
 float windowSize = 800;  
 float outerBoxSize = windowSize / 2 * .8;
+float halfOuterBoxSize = outerBoxSize / 2;
 PVector pointToVec;
 
 // =-=-=-=-=-=-=-=-=-=-=-=- UTILS =-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -47,12 +48,12 @@ void setup() {
   pelicans = new Pelican[numPelicans];
 
   for (int i = 0; i < numPelicans; ++i) {
-    pelicans[i] = new Pelican(outerBoxSize);
+    pelicans[i] = new Pelican();
   }
   //theGround = new Terrain(25,25,2000,2000);
   theAxes = new Axes(100, color(255,0,0), color(0,255,0), color(0,0,255));
   pointToVec = new PVector(random(-1,1), random(-1,1), random(-1,1));
-   pointToVec.mult(70);
+  pointToVec.mult(70);
 
 }
 
@@ -79,13 +80,22 @@ void draw() {
               
   translate(windowSize/2, windowSize/2, 0);
   float yRot = map(mouseX, 0, windowSize, -PI/2, PI/2);
-  float xRot = map(-mouseY, 0, windowSize, -PI/4, PI/4);
+  float xRot = map(-mouseY, 0, windowSize, -PI/2, PI/2);
   rotateY(yRot);
-  rotateX(xRot);
+  //rotateX(xRot);
   
   stroke(255);
   box(outerBoxSize);
-
+  fill(0,50,255);
+  noStroke();
+  beginShape(TRIANGLE_STRIP);
+  vertex(halfOuterBoxSize, halfOuterBoxSize, halfOuterBoxSize);
+  vertex(-halfOuterBoxSize, halfOuterBoxSize, halfOuterBoxSize);
+  vertex(-halfOuterBoxSize, halfOuterBoxSize, -halfOuterBoxSize);
+  vertex(halfOuterBoxSize, halfOuterBoxSize, -halfOuterBoxSize);
+  vertex(halfOuterBoxSize, halfOuterBoxSize, halfOuterBoxSize);
+  endShape(CLOSE);
+  
   updatePelicans();
   renderPelicans();
   

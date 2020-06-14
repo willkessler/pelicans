@@ -20,15 +20,12 @@ class Pelican {
   float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
   float airspeedFriction = 1.0 - 0.001; // air speed slows down by this amount
   float accelFactor = 1.1;
-  float outerBoxSize, halfOuterBoxSize;
   boolean flappingWings = false;
   float G = 0.001; // gravity constant
   float wingGBump = -200;
   Cone body;
   
-  Pelican(float oBoxSize) {
-    outerBoxSize = oBoxSize;
-    halfOuterBoxSize = outerBoxSize / 2;
+  Pelican() {
     pos = new PVector(0,0);
     //vel = new PVector(random(0,1), random(0,1));
     vel = new PVector(1,0,0);
@@ -128,7 +125,7 @@ class Pelican {
     // render vector for velocity
     stroke(255,0,0);
     //strokeWeight(10); 
-    //line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
+    line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
    
     strokeWeight(1);
     if (wingFlapCount > 0) {

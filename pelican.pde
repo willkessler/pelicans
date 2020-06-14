@@ -1,5 +1,16 @@
+// TODO: 
+// add updraft, crosswind or facing winds
+// bird tilts up a bit while climbing. : ? is this realistic? maybe the pelicans stay level while climbing?
+//   rotate vel vector up a few degrees relative to climb speed and align with the rotated vector
+// actually animate wings
+// Boids effects
+// moving landscape
+
+
+
 class Pelican {
-  PVector pos, vel, accel, accelBumpVec, accelPush, dragVec;
+  
+  PVector pos, vel, gravityVel, accel, accelBumpVec, accelPush, gravityAcc;
   float rot, radRot, rotVel;
   int wingFlapCount;
   int numWingFlaps = 3;
@@ -7,10 +18,12 @@ class Pelican {
   float flapScale;
   float wingFlapTimer;
   float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
-  float airspeedFriction = 0.9975; // air speed slows down by this amount
+  float airspeedFriction = 1.0 - 0.001; // air speed slows down by this amount
   float accelFactor = 1.1;
   float outerBoxSize, halfOuterBoxSize;
   boolean flappingWings = false;
+  float G = 0.001; // gravity constant
+  float wingGBump = -200;
   Cone body;
   
   Pelican(float oBoxSize) {
@@ -18,14 +31,15 @@ class Pelican {
     halfOuterBoxSize = outerBoxSize / 2;
     pos = new PVector(0,0);
     //vel = new PVector(random(0,1), random(0,1));
-    vel = new PVector(1,0);
-    accel = new PVector(0,0);
-    accelPush = new PVector(0,0);
-    dragVec = new PVector(0,0);
-    accelBumpVec = new PVector(0,0);
+    vel = new PVector(1,0,0);
+    accel = new PVector(0,0,0);
+    accelPush = new PVector(0,0,0);
+    gravityVel = new PVector(0,0,0);
+    gravityAcc = new PVector(0,0,G);
+    accelBumpVec = new PVector(0,0,0);
     rot = 0.0;
     rotVel = 0.0;
-    body = new Cone(30,10,80);
+    body = new Cone(20,4,40);
   }
   
   float wrap(float coord, float minimum, float maximum) {
@@ -65,12 +79,13 @@ class Pelican {
           stopFlappingWings();
         }
       } else if (wingFlapTimer == 90) {
-        accelPush.set(vel.x, vel.y);
+        accelPush.set(vel.x, vel.y, 0);
         accelPush.normalize();
         accelPush.mult(0.1);
         accel.set(accelPush);
+        gravityVel.z = wingGBump * G;
       } else if ((wingFlapTimer > 90)) { // wings at top of flap, start to apply downward force
-        accelBumpVec.set(accel.x, accel.y);
+        accelBumpVec.set(accel.x, accel.y, accel.z);
         float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
         float sinAccel = sin(radians(accelBump)) * accelFactor;
         accelBumpVec.set(accelPush);
@@ -78,40 +93,42 @@ class Pelican {
         //println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
         accel.add(accelBumpVec);
       }
-    } else {    
-       if (vel.mag() < 0.8) {
+    } else {
+       if (gravityVel.z > 0.2) {
         startFlappingWings();
       }
 
     }
     
-    dragVec.set(vel.x, vel.y);
-    dragVec.mult(random(-0.01, -0.001)); // drag in the opposite direction of the velocity
-    accel.add(dragVec);
+    accel.mult(airspeedFriction);
+    gravityVel.add(gravityAcc);
     vel.add(accel);
-    //vel.limit(2.5);
+    vel.limit(2);
     pos.add(vel);
+    pos.add(gravityVel);
+    //println(pos, vel);
     pos.set(wrap(pos.x, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.y, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.z, -halfOuterBoxSize, halfOuterBoxSize));
     accel.mult(0);
     
     if (!flappingWings) { // no turning while flapping wings
-      rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
+      //rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
+      rotVel += random(-0.005,0.005);
       vel.rotate(radians(rotVel));
     }
 
   }
   
   void render() {
-    float theta = vel.heading();
+    //float theta = vel.heading();
     float r = 35;
     
     pushMatrix();
-    translate(pos.x, pos.y, -100);
+    translate(pos.x, pos.y, pos.z);
     
     // render vector for velocity
     stroke(255,0,0);
-    strokeWeight(10); 
-    line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
+    //strokeWeight(10); 
+    //line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
    
     strokeWeight(1);
     if (wingFlapCount > 0) {

@@ -150,12 +150,13 @@ class Pelican {
     
     strokeWeight(10);
     stroke(0,0,255);
-    wingTipPhase += 0.05;
-    float wingTipRot = map(sin(wingTipPhase),-1,1,-75,75);
-    println("wingTipPhase", wingTipPhase, "wingTipRot", wingTipRot);
+    wingTipPhase += 0.09;
+    float wingTipRot = map(sin(wingTipPhase),-1,1,-55,25);
     wingTip.set(cos(radians(wingTipRot)), sin(radians(wingTipRot)),0);
-    wingTip.mult(100);
+    wingTip.mult(60);
     line(0,0,0, wingTip.x, wingTip.y, wingTip.z);
+    line(0,0,0, -wingTip.x, wingTip.y, wingTip.z);
+    strokeWeight(1);
   }
   
 }

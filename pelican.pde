@@ -11,7 +11,9 @@
 class Pelican {
   
   PVector pos, vel, gravityVel, accel, accelBumpVec, accelPush, gravityAcc, rRot;
+  PVector wingTip;
   float rot, radRot, rotVel;
+  float wingTipPhase;
   int wingFlapCount;
   int numWingFlaps = 3;
   float velAddPerWingFlap = 2;
@@ -34,6 +36,8 @@ class Pelican {
     gravityVel = new PVector(0,0,0);
     gravityAcc = new PVector(0,G,0);
     accelBumpVec = new PVector(0,0,0);
+    wingTip = new PVector(0,0,0);
+    wingTipPhase = 0;
     rRot = new PVector(0,0);
     rot = 0.0;
     rotVel = 0.0;
@@ -143,6 +147,15 @@ class Pelican {
     body.render();
     
     popMatrix();
+    
+    strokeWeight(10);
+    stroke(0,0,255);
+    wingTipPhase += 0.05;
+    float wingTipRot = map(sin(wingTipPhase),-1,1,-75,75);
+    println("wingTipPhase", wingTipPhase, "wingTipRot", wingTipRot);
+    wingTip.set(cos(radians(wingTipRot)), sin(radians(wingTipRot)),0);
+    wingTip.mult(100);
+    line(0,0,0, wingTip.x, wingTip.y, wingTip.z);
   }
   
 }

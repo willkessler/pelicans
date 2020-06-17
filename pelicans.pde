@@ -100,12 +100,12 @@ void draw() {
   renderPelicans();
   
   
-  stroke(255,255,0);
-  strokeWeight(5);
-  line(0,0,0, pointToVec.x, pointToVec.y, pointToVec.z);
-  strokeWeight(1);
+  //stroke(255,255,0);
+  //strokeWeight(5);
+  //line(0,0,0, pointToVec.x, pointToVec.y, pointToVec.z);
+  //strokeWeight(1);
 
-  theAxes.render();
+  //theAxes.render();
 
   //theGround.render();
 

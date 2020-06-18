@@ -128,6 +128,7 @@ class Pelican {
     return (sin(PI/3 * cos(wingTipPhase)));
   }
   
+  // got this idea from : https://math.stackexchange.com/questions/100655/cosine-esque-function-with-flat-peaks-and-valleys
   float wingTipRotFunc2(float wingTipPhase) {
     float cosX = cos(wingTipPhase);
     float b = 1;
@@ -172,7 +173,7 @@ class Pelican {
     
     strokeWeight(10);
     stroke(0,0,255);
-    float wingTipInc1 = 0.1;
+    float wingTipInc1 = 0.05;
     float wingTipInc2 = wingTipInc1 * 2;
     
     if (wingTipPhase < 3) {
@@ -184,13 +185,13 @@ class Pelican {
     if (wingTipPhase > 6) {
       wingTipPhase = 0;
     }
-    float wingArmRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-55,55);
+    float wingArmRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-55,30);
     wingArm.set(cos(radians(wingArmRot)), sin(radians(wingArmRot)),0);
     wingArm.mult(70);
     line(0,0,0, wingArm.x, wingArm.y, wingArm.z);
     line(0,0,0, -wingArm.x, wingArm.y, wingArm.z);
 
-    float wingHandRot =  map(wingTipRotFunc3(wingTipPhase+.4),-1,1,-75,75);
+    float wingHandRot =  map(wingTipRotFunc3(wingTipPhase+.4),-1,1,-55,55);
     wingHand.set(cos(radians(wingHandRot)), sin(radians(wingHandRot)),0);
     wingHand.mult(20);
     line(wingArm.x, wingArm.y, wingArm.z, wingArm.x + wingHand.x, wingArm.y - wingHand.y, wingArm.z + wingHand.z);

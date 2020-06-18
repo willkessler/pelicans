@@ -80,9 +80,9 @@ void draw() {
               
   translate(windowSize/2, windowSize/2, 0);
   float yRot = map(mouseX, 0, windowSize, -PI/2, PI/2);
-  float xRot = map(-mouseY, 0, windowSize, -PI/2, PI/2);
+  float xRot = map(height - mouseY, 0, windowSize, -PI/2, PI/2);
   rotateY(yRot);
-  //rotateX(xRot);
+  rotateX(xRot);
   
   stroke(255);
   box(outerBoxSize);

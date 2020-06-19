@@ -105,7 +105,7 @@ void draw() {
   //line(0,0,0, pointToVec.x, pointToVec.y, pointToVec.z);
   //strokeWeight(1);
 
-  //theAxes.render();
+  theAxes.render();
 
   //theGround.render();
 

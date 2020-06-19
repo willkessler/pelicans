@@ -119,7 +119,8 @@ class Pelican {
       rRot.set(vel.x, vel.z);
       rRot.rotate(radians(rotVel));
       vel.x = rRot.x;
-      vel.y = rRot.z;
+      vel.z = rRot.y;
+      //println("rRot", rRot, vel);
     }
 
   }
@@ -169,10 +170,10 @@ class Pelican {
     rotateToVector(vel);
     body.render();
     
-    popMatrix();
-    
+    rotateY(PI/2);
+    translate(0,0,-10);
     strokeWeight(10);
-    stroke(0,0,255);
+    stroke(255,0,0);
     float wingTipInc1 = 0.05;
     float wingTipInc2 = wingTipInc1 * 2;
     
@@ -199,6 +200,8 @@ class Pelican {
 
     
     strokeWeight(1);
+    popMatrix();
+
     // hand flap:
     // -1/2 * sin( pi / 2 * cos(x - pi/2)))
     // hand flap 2

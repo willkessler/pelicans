@@ -14,6 +14,9 @@ class Pelican {
   PVector wingHumerus, wingUlna, wingHand, wingJoint1, wingJoint2;
   float rot, radRot, rotVel;
   float wingTipPhase;
+  float wingTipPhaseSpeed = 0.1;
+  float wingTipPhaseMax = 6;
+  float wingTipsAtRest = wingTipPhaseMax / 3;
   int wingFlapCount;
   int numWingFlaps = 3;
   float velAddPerWingFlap = 2;
@@ -42,7 +45,7 @@ class Pelican {
     wingJoint1 = new PVector(0,0,0);
     wingJoint2 = new PVector(0,0,0);
 
-    wingTipPhase = 0;
+    wingTipPhase = wingTipsAtRest;
     rRot = new PVector(0,0);
     rot = 0.0;
     rotVel = 0.0;
@@ -152,18 +155,24 @@ class Pelican {
   }
   
   void renderWings() {
+    float wingTipInc1 = wingTipPhaseSpeed;
+    float wingTipInc2 = wingTipInc1 * 2.2;
+ 
+    rotateY(PI/2);
+    translate(0,0,-10);
     strokeWeight(10);
-    float wingTipInc1 = 0.05;
-    float wingTipInc2 = wingTipInc1 * 2;
-    
-    if (wingTipPhase < 3) {
-      wingTipPhase += wingTipInc1;
-    } else {
-      wingTipPhase += wingTipInc2; // wing downstroke faster than upstroke, looks more natural-like ya know
-    }
-    //println("wingTipPhase", wingTipPhase);
-    if (wingTipPhase > 6) {
-      wingTipPhase = 0;
+
+    if (flappingWings) {
+      if (wingTipPhase < 3) {
+        wingTipPhase += wingTipInc1;
+      } else {
+        wingTipPhase += wingTipInc2; // wing downstroke faster than upstroke, looks more natural-like ya know
+      }
+      //println("wingTipPhase", wingTipPhase);
+      if (wingTipPhase > wingTipPhaseMax) {
+        println("Resetting wingTipPhase");
+        wingTipPhase = 0;
+      }
     }
     float wingHumerusRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-65,40);
     wingHumerus.set(cos(radians(wingHumerusRot)), sin(radians(wingHumerusRot)),0);
@@ -172,7 +181,7 @@ class Pelican {
     wingJoint2.set(0,0,0);
     stroke(255,0,0);
     line(wingJoint1.x, wingJoint1.y, wingJoint1.z, wingHumerus.x, wingHumerus.y, wingHumerus.z);
-    line(wingJoint2.x, wingJoint2.y, wingJoint2.z, -wingHumerus.x, wingHumerus.y, wingHumerus.z);
+    line(wingJoint2.x, wingJoint2.y, wingJoint2.z, -wingHumerus.x, wingHumerus.y, wingHumerus.z); //<>//
     wingJoint1.set(wingHumerus.x, wingHumerus.y, wingHumerus.z);
     wingJoint2.set(-wingHumerus.x, wingHumerus.y, wingHumerus.z);
 
@@ -181,7 +190,7 @@ class Pelican {
     wingUlna.mult(45);
     stroke(0,255,0);
     line(wingJoint1.x, wingJoint1.y, wingJoint1.z, wingJoint1.x + wingUlna.x, wingJoint1.y + wingUlna.y, wingJoint1.z + wingUlna.z);
-    line(wingJoint2.x, wingJoint2.y, wingJoint2.z, wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z); //<>//
+    line(wingJoint2.x, wingJoint2.y, wingJoint2.z, wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z);
     wingJoint1.set(wingJoint1.x + wingUlna.x, wingJoint1.y + wingUlna.y, wingJoint1.z + wingUlna.z);
     wingJoint2.set(wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z);
 
@@ -193,7 +202,6 @@ class Pelican {
     line(wingJoint2.x, wingJoint2.y, wingJoint2.z, wingJoint2.x - wingHand.x, wingJoint2.y - wingHand.y, wingJoint2.z + wingHand.z);
     
     strokeWeight(1);
-    //popMatrix();
 
     // hand flap:
     // -1/2 * sin( pi / 2 * cos(x - pi/2)))
@@ -230,13 +238,11 @@ class Pelican {
     //rotateZ(theta);
     rotateToVector(vel);
     body.render();
-    
-    //rotateY(PI/2);
-    //translate(0,0,-10);
-    popMatrix();
-    
+       
     renderWings();
     
+    popMatrix();
+
   }
   
 }

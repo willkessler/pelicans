@@ -17,7 +17,7 @@ class Pelican {
   float wingTipPhase;
   float wingTipPhaseSpeed = 0.1;
   float wingTipPhaseMax = 6;
-  float wingTipsAtRest = wingTipPhaseMax / 3;
+  float wingTipsAtRest = wingTipPhaseMax / 3.5;
   int wingFlapCount;
   int numWingFlaps = 3;
   float velAddPerWingFlap = 2;
@@ -179,10 +179,13 @@ class Pelican {
         println("Resetting wingTipPhase");
         wingTipPhase = 0;
       }
+    } else {
+      wingTipPhase = wingTipsAtRest;
     }
+    
     float wingHumerusRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-65,40);
     wingHumerus.set(cos(radians(wingHumerusRot)), sin(radians(wingHumerusRot)),0);
-    wingHumerus.mult(35); //<>//
+    wingHumerus.mult(40); //<>//
     wingJoint1.set(0,0,0);
     wingJoint2.set(0,0,0);
     stroke(255,0,0);
@@ -191,16 +194,16 @@ class Pelican {
     wingJoint1.set(wingHumerus.x, wingHumerus.y, wingHumerus.z);
     wingJoint2.set(-wingHumerus.x, wingHumerus.y, wingHumerus.z);
 
-    float wingUlnaRot = map(wingTipRotFunc2(wingTipPhase - 0.75),-1,1,-55,45);
+    float wingUlnaRot = map(wingTipRotFunc2(wingTipPhase - 0.25),-1,1,-55,45);
     wingUlna.set(cos(radians(wingUlnaRot)), sin(radians(wingUlnaRot)),0);
-    wingUlna.mult(45);
+    wingUlna.mult(55);
     stroke(0,255,0);
     line(wingJoint1.x, wingJoint1.y, wingJoint1.z, wingJoint1.x + wingUlna.x, wingJoint1.y + wingUlna.y, wingJoint1.z + wingUlna.z);
     line(wingJoint2.x, wingJoint2.y, wingJoint2.z, wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z);
     wingJoint1.set(wingJoint1.x + wingUlna.x, wingJoint1.y + wingUlna.y, wingJoint1.z + wingUlna.z);
     wingJoint2.set(wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z);
 
-    float wingHandRot =  map(wingTipRotFunc3(wingTipPhase+.4),-1,1,-65,75);
+    float wingHandRot =  map(wingTipRotFunc3(wingTipPhase+1),-1,1,-65,75);
     wingHand.set(cos(radians(wingHandRot)), sin(radians(wingHandRot)),0);
     wingHand.mult(20);
     stroke(0,0,255);

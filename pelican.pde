@@ -1,15 +1,16 @@
-// TODO: 
-// add updraft, crosswind or facing winds
+// TODO:
+// actually animate wings
 // bird tilts up a bit while climbing. : ? is this realistic? maybe the pelicans stay level while climbing?
 //   rotate vel vector up a few degrees relative to climb speed and align with the rotated vector
-// actually animate wings
+// add actual pelican body
+// add updraft, crosswind or facing winds
 // Boids effects
 // moving landscape
 
 
 
 class Pelican {
-  
+
   PVector pos, vel, gravityVel, accel, accelBumpVec, accelPush, gravityAcc, rRot;
   PVector wingHumerus, wingUlna, wingHand, wingJoint1, wingJoint2;
   float rot, radRot, rotVel;
@@ -29,7 +30,7 @@ class Pelican {
   float G = 0.001; // gravity constant
   float wingGBump = -200;
   Cone body;
-  
+
   Pelican() {
     pos = new PVector(0,0);
     //vel = new PVector(random(0,1), random(0,1));
@@ -51,7 +52,7 @@ class Pelican {
     rotVel = 0.0;
     body = new Cone(20,4,40);
   }
-  
+
   float wrap(float coord, float minimum, float maximum) {
     float newVal = coord;
     if (coord >= maximum) {
@@ -59,29 +60,41 @@ class Pelican {
     }
     if (coord <= minimum) {
       newVal = maximum;
-    } 
+    }
     return newVal;
   }
-  
+
   void startFlappingWings() {
     wingFlapCount = int(random(1,numWingFlaps));
     wingFlapTimer = 0;
     flappingWings = true;
   }
-  
+
   void stopFlappingWings() {
     flappingWings = false;
   }
-  
+
+  void turn() {
+   if (!flappingWings) { // no turning while flapping wings
+      //rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
+      rotVel += random(-0.005,0.005);
+      rRot.set(vel.x, vel.z);
+      rRot.rotate(radians(rotVel));
+      vel.x = rRot.x;
+      vel.z = rRot.y;
+      //println("rRot", rRot, vel);
+    }
+  }
+
   void update() {
     radRot = radians(rot);
-   
+
     if (flappingWings) {
       //println("not updating rot");
       if (wingFlapTimer < 360) {
         wingFlapTimer += (wingFlapTimer < 90 ? wingFlapUpTimerInc : wingFlapDownTimerInc);
       }
-      
+
       if (wingFlapTimer >= 180) { // reset for another flap or stop flapping
         wingFlapCount--;
         wingFlapTimer = 0;
@@ -110,7 +123,7 @@ class Pelican {
       }
 
     }
-    
+
     accel.mult(airspeedFriction);
     gravityVel.add(gravityAcc);
     vel.add(accel);
@@ -119,23 +132,16 @@ class Pelican {
     pos.add(gravityVel);
     pos.set(wrap(pos.x, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.y, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.z, -halfOuterBoxSize, halfOuterBoxSize));
     accel.mult(0);
-    
-    if (!flappingWings) { // no turning while flapping wings
-      //rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
-      rotVel += random(-0.005,0.005);
-      rRot.set(vel.x, vel.z);
-      rRot.rotate(radians(rotVel));
-      vel.x = rRot.x;
-      vel.z = rRot.y;
-      //println("rRot", rRot, vel);
-    }
+
+    turn();
 
   }
-  
+
+  // apparently, as i learned from Zach Lieberman, you can also square off a sin wave by running it through itself a few times ala f(x) = PI/2 * sin(x), then. return f(f(x));
   float wingTipRotFunc1(float wingTipPhase) {
     return (sin(PI/3 * cos(wingTipPhase)));
   }
-  
+
   // got this idea from : https://math.stackexchange.com/questions/100655/cosine-esque-function-with-flat-peaks-and-valleys
   float wingTipRotFunc2(float wingTipPhase) {
     float cosX = cos(wingTipPhase);
@@ -144,7 +150,7 @@ class Pelican {
     float result = sqrt( ( 1 + bSquared) / (1 + bSquared * cosX * cosX ) )  * cosX;
     return result;
   }
-  
+
   float wingTipRotFunc3(float wingTipPhase) {
     float sinX = sin(wingTipPhase);
     float sinXMinusPi = sin(wingTipPhase - PI);
@@ -153,11 +159,11 @@ class Pelican {
     float result = sqrt( ( 1 + bSquared) / (1 + bSquared * sinX * sinX ) )  * sinXMinusPi;
     return result;
   }
-  
+
   void renderWings() {
     float wingTipInc1 = wingTipPhaseSpeed;
     float wingTipInc2 = wingTipInc1 * 2.2;
- 
+
     rotateY(PI/2);
     translate(0,0,-10);
     strokeWeight(10);
@@ -176,12 +182,12 @@ class Pelican {
     }
     float wingHumerusRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-65,40);
     wingHumerus.set(cos(radians(wingHumerusRot)), sin(radians(wingHumerusRot)),0);
-    wingHumerus.mult(35);
+    wingHumerus.mult(35); //<>//
     wingJoint1.set(0,0,0);
     wingJoint2.set(0,0,0);
     stroke(255,0,0);
     line(wingJoint1.x, wingJoint1.y, wingJoint1.z, wingHumerus.x, wingHumerus.y, wingHumerus.z);
-    line(wingJoint2.x, wingJoint2.y, wingJoint2.z, -wingHumerus.x, wingHumerus.y, wingHumerus.z); //<>//
+    line(wingJoint2.x, wingJoint2.y, wingJoint2.z, -wingHumerus.x, wingHumerus.y, wingHumerus.z);
     wingJoint1.set(wingHumerus.x, wingHumerus.y, wingHumerus.z);
     wingJoint2.set(-wingHumerus.x, wingHumerus.y, wingHumerus.z);
 
@@ -200,7 +206,7 @@ class Pelican {
     stroke(0,0,255);
     line(wingJoint1.x, wingJoint1.y, wingJoint1.z, wingJoint1.x + wingHand.x, wingJoint1.y - wingHand.y, wingJoint1.z + wingHand.z);
     line(wingJoint2.x, wingJoint2.y, wingJoint2.z, wingJoint2.x - wingHand.x, wingJoint2.y - wingHand.y, wingJoint2.z + wingHand.z);
-    
+
     strokeWeight(1);
 
     // hand flap:
@@ -215,19 +221,19 @@ class Pelican {
     // weird very square graph with discontinuities:
     // 3 * cos(x) ^ (1/25)
   }
-  
+
   void render() {
     //float theta = vel.heading();
     float r = 35;
-    
+
     pushMatrix();
     translate(pos.x, pos.y, pos.z);
-    
+
     // render vector for velocity
     stroke(255,0,0);
-    //strokeWeight(10); 
+    //strokeWeight(10);
     line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
-   
+
     strokeWeight(1);
     if (wingFlapCount > 0) {
       flapScale = 1.0 + sin(radians(wingFlapTimer));
@@ -238,11 +244,11 @@ class Pelican {
     //rotateZ(theta);
     rotateToVector(vel);
     body.render();
-       
+
     renderWings();
-    
+
     popMatrix();
 
   }
-  
+
 }

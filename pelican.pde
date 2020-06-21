@@ -19,7 +19,7 @@ class Pelican {
   float rot, radRot, rotVel;
   float wingTipPhase;
   float wingTipPhaseSpeed = 0.1;
-  float wingTipPhaseMax = 6;
+  float wingTipPhaseMax = 8;
   float wingTipsAtRest = wingTipPhaseMax / 3.5;
   int wingFlapCount;
   int numWingFlaps = 3;
@@ -30,6 +30,7 @@ class Pelican {
   float airspeedFriction = 1.0 - 0.0001; // air speed slows down by this amount
   float accelFactor = 1.1;
   boolean flappingWings = false;
+  boolean accelPushSet = false;
   float G = 0.001; // gravity constant
   float wingGBump = -200;
   Cone body;
@@ -68,7 +69,7 @@ class Pelican {
   }
 
   void startFlappingWings() {
-    wingFlapCount = int(random(1,numWingFlaps));
+    wingFlapCount = int(random(2,numWingFlaps));
     wingFlapTimer = 0;
     flappingWings = true;
   }
@@ -76,7 +77,30 @@ class Pelican {
   void stopFlappingWings() {
     flappingWings = false;
   }
+  
+  void applyAccelPush() {
+    if (!accelPushSet) {
+      accelPush.set(vel.x, 0, vel.z);
+      accelPush.normalize();
+      accelPush.mult(0.1);
+      accel.set(accelPush);
+      gravityVel.y = wingGBump * G;
+      accelPushSet = true;
+    }
 
+    accelBumpVec.set(accel.x, accel.y, accel.z);
+    float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
+    float sinAccel = sin(radians(accelBump)) * accelFactor;
+    accelBumpVec.set(accelPush);
+    accelBumpVec.mult(sinAccel);
+    //println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
+    accel.add(accelBumpVec);
+  }
+  
+  void resetAccelPush() {
+    accelPushSet = false;
+  }
+  
   void turn() {
    if (!flappingWings) { // no turning while flapping wings
       //rotVel += max(-0.01, min(0.01,random(-0.1,0.1)));
@@ -88,43 +112,12 @@ class Pelican {
       //println("rRot", rRot, vel);
     }
   }
-
+  
   void update() {
     radRot = radians(rot);
 
-    if (flappingWings) {
-      //println("not updating rot");
-      if (wingFlapTimer < 360) {
-        wingFlapTimer += (wingFlapTimer < 90 ? wingFlapUpTimerInc : wingFlapDownTimerInc);
-      }
-
-      if (wingFlapTimer >= 180) { // reset for another flap or stop flapping
-        wingFlapCount--;
-        wingFlapTimer = 0;
-        if (wingFlapCount == 0) {
-          stopFlappingWings();
-        }
-      } else if (wingFlapTimer == 90) {
-        accelPush.set(vel.x, 0, vel.z);
-        accelPush.normalize();
-        accelPush.mult(0.1);
-        accel.set(accelPush);
-        gravityVel.y = wingGBump * G;
-      } else if ((wingFlapTimer > 90)) { // wings at top of flap, start to apply downward force
-        accelBumpVec.set(accel.x, accel.y, accel.z);
-        float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
-        float sinAccel = sin(radians(accelBump)) * accelFactor;
-        accelBumpVec.set(accelPush);
-        accelBumpVec.mult(sinAccel);
-        //println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
-        accel.add(accelBumpVec);
-      }
-    } else {
-      //println("gravityVel y", gravityVel.y);
-       if (gravityVel.y > 0.2) {
+    if (gravityVel.y > 0.2  && !flappingWings) {
         startFlappingWings();
-      }
-
     }
 
     accel.mult(airspeedFriction);
@@ -140,7 +133,8 @@ class Pelican {
 
   }
 
-  // apparently, as i learned from Zach Lieberman, you can also square off a sin wave by running it through itself a few times ala f(x) = PI/2 * sin(x), then. return f(f(x));
+  // apparently, as i learned from Zach Lieberman, you can also square off a sin wave by running it through itself a few times ala f(x) = PI/2 * sin(x), 
+  // then. return f(f(x));
   float wingTipRotFunc1(float wingTipPhase) {
     return (sin(PI/3 * cos(wingTipPhase)));
   }
@@ -175,12 +169,18 @@ class Pelican {
       if (wingTipPhase < 3) {
         wingTipPhase += wingTipInc1;
       } else {
+        applyAccelPush();
         wingTipPhase += wingTipInc2; // wing downstroke faster than upstroke, looks more natural-like ya know
       }
       //println("wingTipPhase", wingTipPhase);
       if (wingTipPhase > wingTipPhaseMax) {
         println("Resetting wingTipPhase");
         wingTipPhase = 0;
+        resetAccelPush();
+        wingFlapCount--;
+        if (wingFlapCount == 0) {
+          stopFlappingWings();
+        }
       }
     } else {
       wingTipPhase = wingTipsAtRest;
@@ -188,6 +188,7 @@ class Pelican {
     
     float wingHumerusRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-65,40);
     wingHumerus.set(cos(radians(wingHumerusRot)), sin(radians(wingHumerusRot)),0);
+    println(wingTipPhase, wingHumerus.x, wingHumerus.y);
     wingHumerus.mult(40); //<>//
     wingJoint1.set(0,0,0);
     wingJoint2.set(0,0,0);

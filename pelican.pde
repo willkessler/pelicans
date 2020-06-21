@@ -17,10 +17,10 @@ class Pelican {
   PVector pos, vel, gravityVel, accel, accelBumpVec, accelPush, gravityAcc, rRot;
   PVector wingHumerus, wingUlna, wingHand, wingJoint1, wingJoint2;
   float rot, radRot, rotVel;
-  float wingTipPhase;
-  float wingTipPhaseSpeed = 0.1;
-  float wingTipPhaseMax = 8;
-  float wingTipsAtRest = wingTipPhaseMax / 3.5;
+  int wingTipPhase;
+  int wingTipPhaseSpeed = 2;
+  int wingTipPhaseMax = 359;
+  int wingTipsAtRest = 270;
   int wingFlapCount;
   int numWingFlaps = 3;
   float velAddPerWingFlap = 2;
@@ -33,6 +33,9 @@ class Pelican {
   boolean accelPushSet = false;
   float G = 0.001; // gravity constant
   float wingGBump = -200;
+  float [] func1Vals;
+  float [] func2Vals;
+  float [] func3Vals;
   Cone body;
 
   Pelican() {
@@ -55,6 +58,15 @@ class Pelican {
     rot = 0.0;
     rotVel = 0.0;
     body = new Cone(20,4,40);
+    func1Vals = new float[360];
+    func2Vals = new float[360];
+    func3Vals = new float[360];
+    for (int i = 0; i < 360; i++) {
+      func1Vals[i] = wingTipRotFunc1((float) i);
+      func2Vals[i] = wingTipRotFunc2((float) i);
+      func3Vals[i] = wingTipRotFunc3((float) i);
+    }
+      
   }
 
   float wrap(float coord, float minimum, float maximum) {
@@ -69,7 +81,7 @@ class Pelican {
   }
 
   void startFlappingWings() {
-    wingFlapCount = int(random(2,numWingFlaps));
+    wingFlapCount = int(random(1,numWingFlaps));
     wingFlapTimer = 0;
     flappingWings = true;
   }
@@ -136,12 +148,12 @@ class Pelican {
   // apparently, as i learned from Zach Lieberman, you can also square off a sin wave by running it through itself a few times ala f(x) = PI/2 * sin(x), 
   // then. return f(f(x));
   float wingTipRotFunc1(float wingTipPhase) {
-    return (sin(PI/3 * cos(wingTipPhase)));
+    return (sin(PI/3 * cos(radians(wingTipPhase))));
   }
 
   // got this idea from : https://math.stackexchange.com/questions/100655/cosine-esque-function-with-flat-peaks-and-valleys
   float wingTipRotFunc2(float wingTipPhase) {
-    float cosX = cos(wingTipPhase);
+    float cosX = cos(radians(wingTipPhase));
     float b = 1;
     float bSquared = b * b;
     float result = sqrt( ( 1 + bSquared) / (1 + bSquared * cosX * cosX ) )  * cosX;
@@ -149,33 +161,45 @@ class Pelican {
   }
 
   float wingTipRotFunc3(float wingTipPhase) {
-    float sinX = sin(wingTipPhase);
-    float sinXMinusPi = sin(wingTipPhase - PI);
+    float sinX = sin(radians(wingTipPhase));
+    float sinXMinusPi = sin(radians(wingTipPhase) - PI);
     float b = 0.75;
     float bSquared = b * b;
     float result = sqrt( ( 1 + bSquared) / (1 + bSquared * sinX * sinX ) )  * sinXMinusPi;
     return result;
   }
 
+  int wrapWingTipPhase(int phase) {
+    if (phase < 0) {
+      return wingTipPhaseMax + phase;
+    } else if (phase > wingTipPhaseMax) {
+      return phase - wingTipPhaseMax;
+    }
+    return phase;
+  }
+  
+
   void renderWings() {
-    float wingTipInc1 = wingTipPhaseSpeed;
-    float wingTipInc2 = wingTipInc1 * 2.2;
+    int wingTipInc1 = wingTipPhaseSpeed;
+    int wingTipInc2 = wingTipInc1 + 2;
+    int currentWingTipPhase;
 
     rotateY(PI/2);
     translate(0,0,-10);
     strokeWeight(10);
 
     if (flappingWings) {
-      if (wingTipPhase < 3) {
-        wingTipPhase += wingTipInc1;
+      currentWingTipPhase = wingTipPhase;
+      if (wingTipPhase < 180) {
+        wingTipPhase = wrapWingTipPhase(wingTipPhase + wingTipInc1);
       } else {
         applyAccelPush();
-        wingTipPhase += wingTipInc2; // wing downstroke faster than upstroke, looks more natural-like ya know
+        wingTipPhase = wrapWingTipPhase(wingTipPhase + wingTipInc2); // wing downstroke faster than upstroke, looks more natural-like ya know
       }
+      
       //println("wingTipPhase", wingTipPhase);
-      if (wingTipPhase > wingTipPhaseMax) {
+      if (wingTipPhase >= wingTipsAtRest && currentWingTipPhase < wingTipsAtRest) {
         println("Resetting wingTipPhase");
-        wingTipPhase = 0;
         resetAccelPush();
         wingFlapCount--;
         if (wingFlapCount == 0) {
@@ -186,9 +210,9 @@ class Pelican {
       wingTipPhase = wingTipsAtRest;
     }
     
-    float wingHumerusRot = map(wingTipRotFunc2(wingTipPhase),-1,1,-65,40);
+    float wingHumerusRot = map(func1Vals[wingTipPhase],-1,1,-65,40);
     wingHumerus.set(cos(radians(wingHumerusRot)), sin(radians(wingHumerusRot)),0);
-    println(wingTipPhase, wingHumerus.x, wingHumerus.y);
+    //println(wingTipPhase, wingHumerus.x, wingHumerus.y);
     wingHumerus.mult(40); //<>//
     wingJoint1.set(0,0,0);
     wingJoint2.set(0,0,0);
@@ -198,7 +222,7 @@ class Pelican {
     wingJoint1.set(wingHumerus.x, wingHumerus.y, wingHumerus.z);
     wingJoint2.set(-wingHumerus.x, wingHumerus.y, wingHumerus.z);
 
-    float wingUlnaRot = map(wingTipRotFunc2(wingTipPhase - 0.25),-1,1,-55,45);
+    float wingUlnaRot = map(func2Vals[wrapWingTipPhase(wingTipPhase-10)],-1,1,-55,45);
     wingUlna.set(cos(radians(wingUlnaRot)), sin(radians(wingUlnaRot)),0);
     wingUlna.mult(55);
     stroke(0,255,0);
@@ -207,7 +231,7 @@ class Pelican {
     wingJoint1.set(wingJoint1.x + wingUlna.x, wingJoint1.y + wingUlna.y, wingJoint1.z + wingUlna.z);
     wingJoint2.set(wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z);
 
-    float wingHandRot =  map(wingTipRotFunc3(wingTipPhase+1),-1,1,-65,75);
+    float wingHandRot =  map(func3Vals[wrapWingTipPhase(wingTipPhase + 45)],-1,1,-65,75);
     wingHand.set(cos(radians(wingHandRot)), sin(radians(wingHandRot)),0);
     wingHand.mult(20);
     stroke(0,0,255);

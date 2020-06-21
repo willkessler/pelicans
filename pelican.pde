@@ -1,7 +1,10 @@
 // TODO:
 // actually animate wings
+// easing function
 // bird tilts up a bit while climbing. : ? is this realistic? maybe the pelicans stay level while climbing?
 //   rotate vel vector up a few degrees relative to climb speed and align with the rotated vector
+// wings transcribe oval front-to-back while flapping in addition to up and down
+// wings are polygons
 // add actual pelican body
 // add updraft, crosswind or facing winds
 // Boids effects

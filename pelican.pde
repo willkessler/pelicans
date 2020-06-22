@@ -18,14 +18,12 @@ class Pelican {
   PVector wingHumerus, wingUlna, wingHand, wingJoint1, wingJoint2;
   float rot, radRot, rotVel;
   int wingTipPhase;
-  int wingTipPhaseSpeed = 2;
-  int wingTipPhaseMax = 359;
-  int wingTipsAtRest = 270;
+  int wingTipPhaseSpeed = 6;  // todo: replace with easing fn
+  int degreeFactor = 2; 
+  int wingTipPhaseMax = 360 * degreeFactor;
+  int wingTipsAtRest = 270 * degreeFactor;
   int wingFlapCount;
   int numWingFlaps = 3;
-  float velAddPerWingFlap = 2;
-  float flapScale;
-  float wingFlapTimer;
   float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
   float airspeedFriction = 1.0 - 0.0001; // air speed slows down by this amount
   float accelFactor = 1.1;
@@ -58,15 +56,18 @@ class Pelican {
     rot = 0.0;
     rotVel = 0.0;
     body = new Cone(20,4,40);
-    func1Vals = new float[360];
-    func2Vals = new float[360];
-    func3Vals = new float[360];
-    for (int i = 0; i < 360; i++) {
-      func1Vals[i] = wingTipRotFunc1((float) i);
-      func2Vals[i] = wingTipRotFunc2((float) i);
-      func3Vals[i] = wingTipRotFunc3((float) i);
+    float degreeIncrement = (1 / (float) degreeFactor); // how much we divide each degree of the unit circle when storing precalculated wing rot function values
+    int numDegreeIncrements = degreeFactor * 360;
+    func1Vals = new float[numDegreeIncrements];
+    func2Vals = new float[numDegreeIncrements];
+    func3Vals = new float[numDegreeIncrements];
+    float iDegree = 0;
+    for (int i = 0; i < numDegreeIncrements; i++) {
+      func1Vals[i] = wingTipRotFunc1(iDegree);
+      func2Vals[i] = wingTipRotFunc2(iDegree);
+      func3Vals[i] = wingTipRotFunc3(iDegree);
+      iDegree = iDegree + degreeIncrement;
     }
-      
   }
 
   float wrap(float coord, float minimum, float maximum) {
@@ -82,7 +83,6 @@ class Pelican {
 
   void startFlappingWings() {
     wingFlapCount = int(random(1,numWingFlaps));
-    wingFlapTimer = 0;
     flappingWings = true;
   }
 
@@ -101,11 +101,11 @@ class Pelican {
     }
 
     accelBumpVec.set(accel.x, accel.y, accel.z);
-    float accelBump = (wingFlapTimer >= 90 ? wingFlapTimer - 90: 0);
+    float wingTipRange = (float) wingTipPhase / degreeFactor;
+    float accelBump = (wingTipRange >= 180 ? (wingTipRange - 180): 0);
     float sinAccel = sin(radians(accelBump)) * accelFactor;
     accelBumpVec.set(accelPush);
     accelBumpVec.mult(sinAccel);
-    //println ("sinAccel", sinAccel, "accelBumpVec", accelBumpVec);
     accel.add(accelBumpVec);
   }
   
@@ -172,7 +172,7 @@ class Pelican {
   int wrapWingTipPhase(int phase) {
     if (phase < 0) {
       return wingTipPhaseMax + phase;
-    } else if (phase > wingTipPhaseMax) {
+    } else if (phase >= wingTipPhaseMax) {
       return phase - wingTipPhaseMax;
     }
     return phase;
@@ -190,14 +190,14 @@ class Pelican {
 
     if (flappingWings) {
       currentWingTipPhase = wingTipPhase;
-      if (wingTipPhase < 180) {
+      if (wingTipPhase < 180 * degreeFactor) {
         wingTipPhase = wrapWingTipPhase(wingTipPhase + wingTipInc1);
       } else {
         applyAccelPush();
         wingTipPhase = wrapWingTipPhase(wingTipPhase + wingTipInc2); // wing downstroke faster than upstroke, looks more natural-like ya know
       }
       
-      //println("wingTipPhase", wingTipPhase);
+      //println("wingTipPhase", wingTipPhase, "wingTipsAtRest", wingTipsAtRest);
       if (wingTipPhase >= wingTipsAtRest && currentWingTipPhase < wingTipsAtRest) {
         println("Resetting wingTipPhase");
         resetAccelPush();
@@ -266,10 +266,6 @@ class Pelican {
     line (0,0,0, vel.x * r,vel.y * r,vel.z * r);
 
     strokeWeight(1);
-    if (wingFlapCount > 0) {
-      flapScale = 1.0 + sin(radians(wingFlapTimer));
-      scale(flapScale);
-    }
     fill(100,140,190);
 
     //rotateZ(theta);

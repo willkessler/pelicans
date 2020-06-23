@@ -1,6 +1,7 @@
 // TODO:
 // actually animate wings
 // easing function
+// fix Hands during wings at rest, they should point down.
 // bird tilts up a bit while climbing. : ? is this realistic? maybe the pelicans stay level while climbing?
 //   rotate vel vector up a few degrees relative to climb speed and align with the rotated vector
 // wings transcribe oval front-to-back while flapping in addition to up and down
@@ -21,7 +22,7 @@ class Pelican {
   int wingTipPhaseSpeed = 6;  // todo: replace with easing fn
   int degreeFactor = 2; 
   int wingTipPhaseMax = 360 * degreeFactor;
-  int wingTipsAtRest = 270 * degreeFactor;
+  int wingTipsAtRest = 250 * degreeFactor;
   int wingFlapCount;
   int numWingFlaps = 3;
   float wingFlapUpTimerInc = 15, wingFlapDownTimerInc = 4; // wingFlagUpTimerInc must be a round divisor into 90
@@ -34,6 +35,7 @@ class Pelican {
   float [] func1Vals;
   float [] func2Vals;
   float [] func3Vals;
+  int [] easingIndexes;
   Cone body;
 
   Pelican() {
@@ -58,16 +60,33 @@ class Pelican {
     body = new Cone(20,4,40);
     float degreeIncrement = (1 / (float) degreeFactor); // how much we divide each degree of the unit circle when storing precalculated wing rot function values
     int numDegreeIncrements = degreeFactor * 360;
+    int i;
     func1Vals = new float[numDegreeIncrements];
     func2Vals = new float[numDegreeIncrements];
     func3Vals = new float[numDegreeIncrements];
-    float iDegree = 0;
-    for (int i = 0; i < numDegreeIncrements; i++) {
+    easingIndexes = new int[numDegreeIncrements];
+    int [] unshiftedEasingIndexes = new int[numDegreeIncrements];
+    float iDegree = 0, iMapped;
+    for (i = 0; i < numDegreeIncrements; i++) {
       func1Vals[i] = wingTipRotFunc1(iDegree);
       func2Vals[i] = wingTipRotFunc2(iDegree);
       func3Vals[i] = wingTipRotFunc3(iDegree);
       iDegree = iDegree + degreeIncrement;
+      unshiftedEasingIndexes[i] = (int) map2((float) i, 0, (float) numDegreeIncrements  - 1, 0, (float) numDegreeIncrements - 1, QUARTIC, EASE_IN_OUT);
     }
+    
+     // rotate easing array so that its start is around the wingTipsAtRest index
+     for (i = wingTipsAtRest; i < numDegreeIncrements; ++i) {
+       easingIndexes[i - wingTipsAtRest] = unshiftedEasingIndexes[i];
+     }
+     for (i = 0; i < wingTipsAtRest; ++i) {
+       easingIndexes[numDegreeIncrements - wingTipsAtRest + i] = unshiftedEasingIndexes[i];
+     }
+
+     for (i = 0; i < numDegreeIncrements; ++i) {
+       print("[", i, ",", easingIndexes[i], "] ");
+     }
+
   }
 
   float wrap(float coord, float minimum, float maximum) {
@@ -141,7 +160,7 @@ class Pelican {
     pos.set(wrap(pos.x, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.y, -halfOuterBoxSize, halfOuterBoxSize), wrap(pos.z, -halfOuterBoxSize, halfOuterBoxSize));
     accel.mult(0);
 
-    turn();
+    //turn();
 
   }
 
@@ -199,7 +218,7 @@ class Pelican {
       
       //println("wingTipPhase", wingTipPhase, "wingTipsAtRest", wingTipsAtRest);
       if (wingTipPhase >= wingTipsAtRest && currentWingTipPhase < wingTipsAtRest) {
-        println("Resetting wingTipPhase");
+        //println("Resetting wingTipPhase");
         resetAccelPush();
         wingFlapCount--;
         if (wingFlapCount == 0) {
@@ -210,7 +229,7 @@ class Pelican {
       wingTipPhase = wingTipsAtRest;
     }
     
-    float wingHumerusRot = map(func1Vals[wingTipPhase],-1,1,-65,40);
+    float wingHumerusRot = map(func1Vals[easingIndexes[wingTipPhase]],-1,1,-65,40);
     wingHumerus.set(cos(radians(wingHumerusRot)), sin(radians(wingHumerusRot)),0);
     //println(wingTipPhase, wingHumerus.x, wingHumerus.y);
     wingHumerus.mult(40); //<>//
@@ -222,7 +241,7 @@ class Pelican {
     wingJoint1.set(wingHumerus.x, wingHumerus.y, wingHumerus.z);
     wingJoint2.set(-wingHumerus.x, wingHumerus.y, wingHumerus.z);
 
-    float wingUlnaRot = map(func2Vals[wrapWingTipPhase(wingTipPhase-10)],-1,1,-55,45);
+    float wingUlnaRot = map(func2Vals[easingIndexes[wrapWingTipPhase(wingTipPhase-10)]],-1,1,-55,45);
     wingUlna.set(cos(radians(wingUlnaRot)), sin(radians(wingUlnaRot)),0);
     wingUlna.mult(55);
     stroke(0,255,0);
@@ -231,7 +250,7 @@ class Pelican {
     wingJoint1.set(wingJoint1.x + wingUlna.x, wingJoint1.y + wingUlna.y, wingJoint1.z + wingUlna.z);
     wingJoint2.set(wingJoint2.x - wingUlna.x, wingJoint2.y + wingUlna.y, wingJoint2.z + wingUlna.z);
 
-    float wingHandRot =  map(func3Vals[wrapWingTipPhase(wingTipPhase + 45)],-1,1,-65,75);
+    float wingHandRot =  map(func3Vals[easingIndexes[wrapWingTipPhase(wingTipPhase + 45)]],-1,1,-65,75);
     wingHand.set(cos(radians(wingHandRot)), sin(radians(wingHandRot)),0);
     wingHand.mult(20);
     stroke(0,0,255);

@@ -11,6 +11,8 @@
 // if there's a crosswind they may float along at an angle to their forward motion, which you see seagulls often doing along cliff lines
 // break out pelicans from seagulls and maybe albatrosses and cormorants
 // create scrolling cliffline with ocean break
+// birds fly past GG bridge
+// birds dive into water for fish https://www.youtube.com/watch?v=SD8nHfLYmPE  https://www.youtube.com/watch?v=wfLl26yzpk8  https://www.youtube.com/watch?v=krrQjPZOCoY
 
 
 int numPelicans = 1;
